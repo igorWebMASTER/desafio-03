@@ -13,7 +13,7 @@ class RecipientController {
       complement: Yup.string(),
       state: Yup.string().required(),
       city: Yup.string().required(),
-      cep: Yup.strin().required(),
+      cep: Yup.string().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
