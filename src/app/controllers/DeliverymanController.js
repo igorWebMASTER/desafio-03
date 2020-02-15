@@ -4,11 +4,17 @@ import File from '../models/File';
 
 class DeliverymanController {
   async index(req, res) {
-    const couriers = await DeliveryMan.findAll({
+    const deliveryman = await DeliveryMan.findAll({
       attributes: ['id', 'name', 'email', 'avatar_id'],
-      includes: [File],
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['url', 'name', 'path'],
+        },
+      ],
     });
-    return res.json(couriers);
+    return res.json(deliveryman);
   }
 
   async store(req, res) {
@@ -58,11 +64,12 @@ class DeliverymanController {
       return res.status(400).json({ error: 'The ID doesn not existis' });
     }
 
-    const { name, email } = await deliveryman.update(req.body);
+    const { name, email, avatar_id } = await deliveryman.update(req.body);
 
     return res.json({
       name,
       email,
+      avatar_id,
     });
   }
 

@@ -6,6 +6,7 @@ import UserController from './app/controllers/UserController';
 import SessionController from './app/controllers/SessionController';
 import FileController from './app/controllers/FileController';
 import DeliverymanController from './app/controllers/DeliverymanController';
+import OrderController from './app/controllers/OrderController';
 
 import RecipientController from './app/controllers/RecipientController';
 
@@ -26,9 +27,14 @@ routes.put('/users', UserController.update);
 
 routes.post('/files', upload.single('file'), FileController.store);
 
-routes.post('/couriers', DeliverymanController.index);
+routes.get('/couriers', DeliverymanController.index);
 routes.post('/courier', DeliverymanController.store);
 routes.put('/courier/:id', DeliverymanController.update);
 routes.delete('/courier/:id', DeliverymanController.delete);
+
+routes.get('/delivery', OrderController.index);
+routes.post('/delivery', OrderController.store);
+routes.put('/delivery/:id', OrderController.update);
+routes.delete('/delivery/:id', OrderController.delete);
 
 export default routes;
