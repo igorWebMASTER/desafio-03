@@ -50,7 +50,7 @@ class OrderController {
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails.' });
     }
-    const { id, product, deliveryman_id, recipient_id } = req.body;
+    const { product, deliveryman_id, recipient_id } = req.body;
 
     const orderExists = await Order.findOne({
       where: { product },
@@ -135,6 +135,13 @@ class OrderController {
 
     if (!delivery) {
       return res.status(400).json({ error: "Delivery does'n found" });
+    }
+
+    if (delivery.start_date) {
+      return res.status(400).json({
+        error:
+          'Cannot delete delivery because delivery has already been initiated',
+      });
     }
 
     await delivery.destroy();
