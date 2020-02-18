@@ -43,7 +43,7 @@ class DeliveriesIndexController {
         },
         {
           model: File,
-          as: 'avatar',
+          as: 'signature',
           attributes: ['url', 'name', 'path'],
         },
       ],
