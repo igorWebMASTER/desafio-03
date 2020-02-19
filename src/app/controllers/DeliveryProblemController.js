@@ -4,12 +4,12 @@ import Deliveryman from '../models/Courier';
 import Delivery from '../models/Order';
 import Recipient from '../models/Recipient';
 import File from '../models/File';
-import DeliveryProblem from '../models/DeliveryProblems';
+import DeliveryProblems from '../models/DeliveryProblems';
 
 class DeliveryProblemController {
   async index(req, res) {
     const { page = 1 } = req.query;
-    const allProblems = await DeliveryProblem.findAll({
+    const allProblems = await DeliveryProblems.findAll({
       limit: 10,
       offset: (page - 1) * 20,
       order: ['created_at', 'updated_at'],
@@ -64,8 +64,9 @@ class DeliveryProblemController {
 
   async show(req, res) {
     const { page = 1 } = req.query;
-    const { deliveryId } = req.params;
-    const problemById = await DeliveryProblem.findByPk(deliveryId, {
+    const { delivery_id } = req.params;
+    const problemById = await DeliveryProblems.findAll({
+      where: { delivery_id },
       limit: 10,
       offset: (page - 1) * 20,
       order: ['created_at', 'updated_at'],
@@ -107,7 +108,7 @@ class DeliveryProblemController {
                 {
                   model: File,
                   as: 'avatar',
-                  attributes: ['id', 'name', 'path', 'url'],
+                  attributes: ['id', 'name', 'path'],
                 },
               ],
             },
@@ -115,17 +116,23 @@ class DeliveryProblemController {
         },
       ],
     });
+
+    if (!problemById) {
+      return res
+        .status(400)
+        .json({ error: 'There is no problem in this Delivery' });
+    }
     return res.json({ problemById });
   }
 
   async store(req, res) {
-    // const schema = Yup.object().shape({
-    //   description: Yup.string().required(),
-    // });
+    const schema = Yup.object().shape({
+      description: Yup.string(),
+    });
 
-    // if (!(await schema.isValid())) {
-    //   return res.status(400).json({ error: 'Check the description' });
-    // }
+    if (!(await schema.isValid())) {
+      return res.status(400).json({ error: 'Check the description' });
+    }
 
     const { delivery_id, deliveryman_id } = req.params;
 
@@ -154,14 +161,14 @@ class DeliveryProblemController {
             {
               model: File,
               as: 'avatar',
-              attributes: ['id', 'name', 'path', 'url'],
+              attributes: ['id', 'name', 'path'],
             },
           ],
         },
         {
           model: File,
           as: 'signature',
-          attributes: ['id', 'name', 'path', 'url'],
+          attributes: ['id', 'name', 'path'],
         },
       ],
     });
@@ -191,8 +198,6 @@ class DeliveryProblemController {
       where: { id: delivery_id },
     });
 
-    // const deliverymanExist = await Deliveryman.create(delivery_id, description);
-
     if (!deliveryExists) {
       return res.status(400).json({ error: 'Delivery not found.' });
     }
@@ -201,59 +206,17 @@ class DeliveryProblemController {
     //   return res.status(401).json({
     //     error: `This delivery ${delivery_id} is not assigned to you  `,
     //   });
-    // }
+    //
     if (deliveryExists.canceled_at) {
       return res.status(400).json({ error: 'This delivery is cancelled' });
     }
 
-    await DeliveryProblem.create({
+    await DeliveryProblems.create({
       delivery_id,
       description,
     });
 
-    await Deliveryman.reload({
-      attributes: ['id', 'description'],
-      include: [
-        {
-          model: Delivery,
-          as: 'delivery',
-          attributes: ['product', 'start_date', 'end_date', 'canceled_at'],
-          include: [
-            {
-              model: Recipient,
-              as: 'recipient',
-              attributes: [
-                'name',
-                'street',
-                'number',
-                'zip_code',
-                'complement',
-                'state',
-                'city',
-              ],
-            },
-            {
-              model: Deliveryman,
-              as: 'deliveryman',
-              attributes: ['name', 'email'],
-              include: [
-                {
-                  model: File,
-                  as: 'avatar',
-                  attributes: ['name', 'path', 'url'],
-                },
-              ],
-            },
-            {
-              model: File,
-              as: 'signature',
-              attributes: ['name', 'path', 'url'],
-            },
-          ],
-        },
-      ],
-    });
-    return res.json(DeliveryProblem);
+    return res.json({ ok: `Problem ${description} has added` });
   }
 }
 
