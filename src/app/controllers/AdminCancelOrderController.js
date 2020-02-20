@@ -126,22 +126,6 @@ class AdminCancelOrderController {
 
     await delivery.update({ canceled_at: date });
 
-    await Mail.sendMail({
-      to: `${delivery.deliveryman.name} <${delivery.deliveryman.email}`,
-      subject: 'Entrega Cancelada',
-      template: 'cancellation',
-      context: {
-        deliveryman: delivery.deliveryman.name,
-        order: delivery.recipient.product,
-        date: format(
-          delivery.canceled_at,
-          "'dia' dd 'de' MMMMM', às' H:mm'h'",
-          {
-            locale: pt,
-          }
-        ),
-      },
-    });
     return res.json(delivery);
   }
 }
