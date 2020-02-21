@@ -1,15 +1,13 @@
 import * as Yup from 'yup';
 
-import pt from 'date-fns/locale/pt';
-import { format } from 'date-fns';
-
 import Deliveryman from '../models/Courier';
 import Delivery from '../models/Order';
 import Recipient from '../models/Recipient';
 import File from '../models/File';
 import DeliveryProblems from '../models/DeliveryProblems';
 
-import Mail from '../../lib/Mail';
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
 
 class AdminCancelOrderController {
   async update(req, res) {
@@ -125,6 +123,10 @@ class AdminCancelOrderController {
     const date = new Date();
 
     await delivery.update({ canceled_at: date });
+
+    await Queue.add(CancellationMail.key, {
+      delivery,
+    });
 
     return res.json(delivery);
   }

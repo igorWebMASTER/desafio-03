@@ -5,6 +5,9 @@ import File from '../models/File';
 import Order from '../models/Order';
 import Recipient from '../models/Recipient';
 
+import Queue from '../../lib/Queue';
+import DeliveryMail from '../jobs/DeliveryMail';
+
 class OrderController {
   async index(req, res) {
     const deliveryman = await Order.findAll({
@@ -76,6 +79,38 @@ class OrderController {
     }
 
     const delivery = await Order.create(req.body);
+
+    await delivery.reload({
+      attributes: ['id', 'product', 'start_date', 'canceled_at', 'end_date'],
+      include: [
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['name', 'email'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['name', 'path', 'url'],
+            },
+          ],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'name',
+            'street',
+            'number',
+            'complement',
+            'state',
+            'city',
+            'cep',
+          ],
+        },
+      ],
+    });
+    await Queue.add(DeliveryMail.key, { delivery });
 
     return res.json({
       delivery,
